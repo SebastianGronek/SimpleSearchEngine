@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Index {
-    private Map<String, Map<String, Long>> index = new HashMap<>();
+    private Map<String, Map<String, Long>> indexMap = new HashMap<>();
 
     private Map<String, Long> lengthsOfAllDocuments = new HashMap<>();
 
@@ -15,16 +15,15 @@ public class Index {
 
     private long numberOfAllDocuments;
 
-    public void setAllEntriesInIndex(Set<Map.Entry<String, Long>> allEntriesInIndex) {
-        this.allEntriesInIndex = allEntriesInIndex;
-    }
+
+
 
     public Set<Map.Entry<String, Long>> getAllEntriesInIndex() {
         return allEntriesInIndex;
     }
 
-    public Map<String, Map<String, Long>> getIndex() {
-        return index;
+    public Map<String, Map<String, Long>> getIndexMap() {
+        return indexMap;
     }
 
     public Map<String, Long> getLengthsOfAllDocuments() {
@@ -35,8 +34,8 @@ public class Index {
         return numberOfAllDocuments;
     }
 
-    public void setIndex(Map<String, Map<String, Long>> index) {
-        this.index = index;
+    public void setIndexMap(Map<String, Map<String, Long>> indexMap) {
+        this.indexMap = indexMap;
     }
 
     public void setLengthsOfAllDocuments(Map<String, Long> lengthsOfAllDocuments) {
@@ -47,6 +46,12 @@ public class Index {
         this.numberOfAllDocuments = numberOfAllDocuments;
     }
 
+    public void setAllEntriesInIndex(Set<Map.Entry<String, Long>> allEntriesInIndex) {
+        this.allEntriesInIndex = allEntriesInIndex;
+    }
+
+
+
     public Map<String, Long> createInvertedIndex(String content) {
         return splitContentIntoStreamOfWords(content).collect(Collectors.groupingBy((t -> t), Collectors.counting()));
     }
@@ -56,7 +61,7 @@ public class Index {
     }
 
     private Stream<String> splitContentIntoStreamOfWords(String content) {
-        return Arrays.stream(content.split("(\\W)"));
+        return Arrays.stream(content.split("(\\W+)"));
     }
 
     private long calculateLengthOfADocument(Document document) {
@@ -64,7 +69,7 @@ public class Index {
     }
 
     public void createSetOfAllEntriesInIndex() {
-        index.values().forEach(t -> allEntriesInIndex.addAll(t.entrySet()));
+        indexMap.values().forEach(t -> allEntriesInIndex.addAll(t.entrySet()));
     }
 
 

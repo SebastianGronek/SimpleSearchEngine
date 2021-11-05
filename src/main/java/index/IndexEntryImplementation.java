@@ -2,6 +2,8 @@ package index;
 
 import com.findwise.IndexEntry;
 
+import java.util.Objects;
+
 public class IndexEntryImplementation implements IndexEntry {
 
     private String id;
@@ -38,5 +40,18 @@ public class IndexEntryImplementation implements IndexEntry {
                 "id='" + id + '\'' +
                 ", score=" + score +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IndexEntryImplementation that = (IndexEntryImplementation) o;
+        return Double.compare(that.score, score) == 0 && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, score);
     }
 }

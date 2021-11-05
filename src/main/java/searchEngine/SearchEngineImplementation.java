@@ -19,26 +19,36 @@ public class SearchEngineImplementation implements SearchEngine {
         Map<String, Long> lengthsOfAllDocuments = indexInstance.getLengthsOfAllDocuments();
         int difference = (int) (t1.getScore() - t2.getScore());
         if (difference == 0) {
-            return (int) (lengthsOfAllDocuments.get(t2.getId()) - lengthsOfAllDocuments.get(t1.getId()));
+            return (int) (lengthsOfAllDocuments.get(t1.getId()) - lengthsOfAllDocuments.get(t2.getId()));
         }
         return difference;
     };
+
+    public static List<IndexEntry> indexDocumentsAndSearchForTerm(List<Document> documents, String term) {
+        SearchEngineImplementation searchEngineInStaticMethod = new SearchEngineImplementation();
+        searchEngineInStaticMethod.indexAllDocuments(documents);
+        return searchEngineInStaticMethod.search(term);
+    }
 
     @Override
     public void indexDocument(String id, String content) {
         Map<String, Long> wordAndNumberOfOccurrences = indexInstance.createInvertedIndex(content);
         for (Map.Entry<String, Long> entry : wordAndNumberOfOccurrences.entrySet()) {
-            indexInstance.getIndex().merge(entry.getKey(), new HashMap<String, Long>() {{
-                put(id, entry.getValue());
-            }}, (t, s) -> {
-                t.put(id, entry.getValue());
-                return t;
-            });
+            addingEntriesFromDocumentToIndex(id, entry);
         }
     }
 
+    private void addingEntriesFromDocumentToIndex(String id, Map.Entry<String, Long> entry) {
+        indexInstance.getIndexMap().merge(entry.getKey(), new HashMap<>() {{
+            put(id, entry.getValue());
+        }}, (t, s) -> {
+            t.put(id, entry.getValue());
+            return t;
+        });
+    }
+
     public void indexAllDocuments(List<Document> listOfDocuments) {
-        indexInstance.setIndex(new HashMap<>());
+        indexInstance.setIndexMap(new HashMap<>());
         indexInstance.setLengthsOfAllDocuments(new HashMap<>());
         indexInstance.setNumberOfAllDocuments(0);
         indexInstance.setAllEntriesInIndex(new HashSet<>());
@@ -56,7 +66,7 @@ public class SearchEngineImplementation implements SearchEngine {
 
     @Override
     public List<IndexEntry> search(String term) {
-        Set<Map.Entry<String, Long>> termSearchResults = checkIfIndexContainsQueriedTerm(term);
+        Set<Map.Entry<String, Long>> termSearchResults = checkIfIndexMapContainsQueriedTerm(term);
         List<IndexEntry> result = new ArrayList<>();
         Set<Map.Entry<String, Long>> allEntriesInIndex = indexInstance.getAllEntriesInIndex();
         for (Map.Entry<String, Long> e : termSearchResults) {
@@ -66,25 +76,19 @@ public class SearchEngineImplementation implements SearchEngine {
         return result;
     }
 
-    private Set<Map.Entry<String, Long>> checkIfIndexContainsQueriedTerm(String term) {
-        if (indexInstance.getIndex().containsKey(term)) {
-            return indexInstance.getIndex().get(term).entrySet();
+    private Set<Map.Entry<String, Long>> checkIfIndexMapContainsQueriedTerm(String term) {
+        if (indexInstance.getIndexMap().containsKey(term)) {
+            return indexInstance.getIndexMap().get(term).entrySet();
         } else {
             throw new TermNotFoundException("Sorry, no document with searched term was found");
         }
     }
 
-    private IndexEntry createIndexEntry(Map.Entry<String, Long> entryInTermSearchResult, Set<Map.Entry<String, Long>> termSearchResults, Set<Map.Entry<String, Long>> allEntriesInIndex) {
-        Long rawFrequencyOfOfMostOccurringTerm = findRawFrequencyOfOfMostOccurringTerm(allEntriesInIndex, entryInTermSearchResult.getKey());
+    private IndexEntry createIndexEntry(Map.Entry<String, Long> entryInTermSearchResult, Set<Map.Entry<String, Long>> termSearchResults, Set<Map.Entry<String, Long>> allEntriesInIndexMap) {
+        Long rawFrequencyOfOfMostOccurringTerm = findRawFrequencyOfOfMostOccurringTerm(allEntriesInIndexMap, entryInTermSearchResult.getKey());
         System.out.println("Raw frequency of most occurring term: " + rawFrequencyOfOfMostOccurringTerm);
         return new IndexEntryImplementation(entryInTermSearchResult.getKey(), calculateScoreTFIDF(entryInTermSearchResult.getValue(), rawFrequencyOfOfMostOccurringTerm, indexInstance.getNumberOfAllDocuments(), termSearchResults.size()));
     }
-
-
-
-  /*  private long calculatingNumberOfOccurrencesOfGivenTermInDocument(String term, Document document) {
-        return Arrays.stream(document.getContent().split("(\\b[^\\s]+\\b)")).filter(t -> t.equalsIgnoreCase(term)).count();
-    }*/
 
     private Long findRawFrequencyOfOfMostOccurringTerm(Set<Map.Entry<String, Long>> allEntriesInIndex, String documentID) {
         return allEntriesInIndex.stream().filter(e -> e.getKey().equalsIgnoreCase(documentID)).max((t, s) -> (int) (t.getValue() - s.getValue())).get().getValue();
@@ -93,9 +97,11 @@ public class SearchEngineImplementation implements SearchEngine {
     public static void main(String[] args) {
         SearchEngine searchEngine = new SearchEngineImplementation();
         List<Document> documents = new ArrayList<>();
-        documents.add(new Document("Document 1", "the brown fox jumped over the brown dog"));
-        documents.add(new Document("Document 2", "the lazy brown dog sat in the corner"));
-        documents.add(new Document("Document 3", "the red fox bit the lazy dog"));
+        documents.add(new Document("Document 1", "the brown fox jumped over    the brown dog"));
+        documents.add(new Document("Document 2", "the lazy brown dog sat, in the corner"));
+        documents.add(new Document("Document 3", "the red fox bit the ... lazy dog"));
+
+
 
         ((SearchEngineImplementation) searchEngine).indexAllDocuments(documents);
         System.out.println(((SearchEngineImplementation) searchEngine).indexInstance.getAllEntriesInIndex());

@@ -8,4 +8,5 @@ public interface IndexEntry {
     double getScore();
 
     void setScore(double score);
+
 }
