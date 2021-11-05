@@ -29,6 +29,21 @@ class SearchEngineImplementationTest {
         documents = new ArrayList<>();
     }
 
+    @Test
+    void shouldIndexDocumentAndSearch() {
+        //given
+        documents.add(new Document("Document 1", "the brown fox jumped over the brown dog"));
+        documents.add(new Document("Document 2", "the lazy brown dog sat in the corner"));
+        documents.add(new Document("Document 3", "the red fox bit the lazy dog"));
+        //when
+        List<IndexEntry> result = SearchEngineImplementation.indexDocumentsAndSearchForTerm(documents, "fox");
+        //then
+        List<IndexEntry> expected = new ArrayList<>();
+        expected.add(new IndexEntryImplementation("Document 3", TFIDFCalculator.calculateScoreTFIDF(1, 2, 3, 2)));
+        expected.add(new IndexEntryImplementation("Document 1", TFIDFCalculator.calculateScoreTFIDF(1, 2, 3, 2)));
+
+        assertThat(result).containsExactlyElementsOf(expected);
+    }
 
     @Test
     void shouldSearchExampleFromTaskDescription() {
