@@ -20,9 +20,9 @@ Download code to your IDE and run main method. To use search engine, use static 
 ```
 indexDocumentsAndSearchForTerm(List<Document> documents, String term);
 ```
-where *documents* is list of texts to be indexed, wrapped in simple container Class (with Strings name and content).
+where *documents* is list of texts to be indexed, which are wrapped in simple container Class (with Strings name and content).
 ###TF-IDF algorithm
-This search engine uses TF-IDF scheme with augmented frequency (double normalization 0.5), provided by Wikipedia.
+This search engine uses TF-IDF calculation scheme with augmented frequency (double normalization 0.5), which could be found on Wikipedia.
 
 TF: (0.5 + 0.5(f/g))
 
@@ -41,7 +41,7 @@ N - number of all documents
 n- number of documents containing searched term
 
 ###Sorting of result list
-List of IndexEntry objects is sorted in descending order by score. If two IndexEntries has the same score, the one referring shorter document comes first.
+List of IndexEntry objects is sorted in descending order by score. If two IndexEntries have the same score, the one referring shorter document comes first.
 ###Example
 Creating list of documents to be indexed:
 ```

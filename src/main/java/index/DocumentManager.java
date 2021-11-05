@@ -6,8 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Index {
-    private Map<String, Map<String, Long>> indexMap = new HashMap<>();
+public class DocumentManager {
+    private Map<String, Map<String, Long>> invertedIndex = new HashMap<>();
 
     private Map<String, Long> lengthsOfAllDocuments = new HashMap<>();
 
@@ -16,14 +16,12 @@ public class Index {
     private long numberOfAllDocuments;
 
 
-
-
     public Set<Map.Entry<String, Long>> getAllEntriesInIndex() {
         return allEntriesInIndex;
     }
 
-    public Map<String, Map<String, Long>> getIndexMap() {
-        return indexMap;
+    public Map<String, Map<String, Long>> getInvertedIndex() {
+        return invertedIndex;
     }
 
     public Map<String, Long> getLengthsOfAllDocuments() {
@@ -34,8 +32,8 @@ public class Index {
         return numberOfAllDocuments;
     }
 
-    public void setIndexMap(Map<String, Map<String, Long>> indexMap) {
-        this.indexMap = indexMap;
+    public void setInvertedIndex(Map<String, Map<String, Long>> invertedIndex) {
+        this.invertedIndex = invertedIndex;
     }
 
     public void setLengthsOfAllDocuments(Map<String, Long> lengthsOfAllDocuments) {
@@ -51,8 +49,7 @@ public class Index {
     }
 
 
-
-    public Map<String, Long> createInvertedIndex(String content) {
+    public Map<String, Long> splitDocumentIntoWordsAndCountOccurrences(String content) {
         return splitContentIntoStreamOfWords(content).collect(Collectors.groupingBy((t -> t), Collectors.counting()));
     }
 
@@ -69,7 +66,7 @@ public class Index {
     }
 
     public void createSetOfAllEntriesInIndex() {
-        indexMap.values().forEach(t -> allEntriesInIndex.addAll(t.entrySet()));
+        invertedIndex.values().forEach(t -> allEntriesInIndex.addAll(t.entrySet()));
     }
 
 

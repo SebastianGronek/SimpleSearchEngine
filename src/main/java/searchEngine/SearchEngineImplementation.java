@@ -3,7 +3,7 @@ package searchEngine;
 import com.findwise.IndexEntry;
 import com.findwise.SearchEngine;
 import errors.TermNotFoundException;
-import index.Index;
+import index.DocumentManager;
 import index.IndexEntryImplementation;
 import model.Document;
 
@@ -13,10 +13,10 @@ import static searchEngine.TFIDFCalculator.calculateScoreTFIDF;
 
 public class SearchEngineImplementation implements SearchEngine {
 
-    Index indexInstance = new Index();
+    DocumentManager documentManagerInstance = new DocumentManager();
 
     Comparator<IndexEntry> indexEntryComparator = (t1, t2) -> {
-        Map<String, Long> lengthsOfAllDocuments = indexInstance.getLengthsOfAllDocuments();
+        Map<String, Long> lengthsOfAllDocuments = documentManagerInstance.getLengthsOfAllDocuments();
         int difference = (int) (t1.getScore() - t2.getScore());
         if (difference == 0) {
             return (int) (lengthsOfAllDocuments.get(t1.getId()) - lengthsOfAllDocuments.get(t2.getId()));
@@ -32,14 +32,14 @@ public class SearchEngineImplementation implements SearchEngine {
 
     @Override
     public void indexDocument(String id, String content) {
-        Map<String, Long> wordAndNumberOfOccurrences = indexInstance.createInvertedIndex(content);
+        Map<String, Long> wordAndNumberOfOccurrences = documentManagerInstance.splitDocumentIntoWordsAndCountOccurrences(content);
         for (Map.Entry<String, Long> entry : wordAndNumberOfOccurrences.entrySet()) {
-            addingEntriesFromDocumentToIndex(id, entry);
+            addingEntriesFromDocumentToInvertedIndex(id, entry);
         }
     }
 
-    private void addingEntriesFromDocumentToIndex(String id, Map.Entry<String, Long> entry) {
-        indexInstance.getIndexMap().merge(entry.getKey(), new HashMap<>() {{
+    private void addingEntriesFromDocumentToInvertedIndex(String id, Map.Entry<String, Long> entry) {
+        documentManagerInstance.getInvertedIndex().merge(entry.getKey(), new HashMap<>() {{
             put(id, entry.getValue());
         }}, (t, s) -> {
             t.put(id, entry.getValue());
@@ -48,10 +48,10 @@ public class SearchEngineImplementation implements SearchEngine {
     }
 
     public void indexAllDocuments(List<Document> listOfDocuments) {
-        indexInstance.setIndexMap(new HashMap<>());
-        indexInstance.setLengthsOfAllDocuments(new HashMap<>());
-        indexInstance.setNumberOfAllDocuments(0);
-        indexInstance.setAllEntriesInIndex(new HashSet<>());
+        documentManagerInstance.setInvertedIndex(new HashMap<>());
+        documentManagerInstance.setLengthsOfAllDocuments(new HashMap<>());
+        documentManagerInstance.setNumberOfAllDocuments(0);
+        documentManagerInstance.setAllEntriesInIndex(new HashSet<>());
         addNewDocumentsToIndex(listOfDocuments);
     }
 
@@ -59,16 +59,16 @@ public class SearchEngineImplementation implements SearchEngine {
         for (Document d : listOfDocuments) {
             indexDocument(d.getName(), d.getContent());
         }
-        indexInstance.setNumberOfAllDocuments(listOfDocuments.size() + indexInstance.getNumberOfAllDocuments());
-        indexInstance.addDocumentsToLengthsOfAllDocumentsMap(listOfDocuments);
-        indexInstance.createSetOfAllEntriesInIndex();
+        documentManagerInstance.setNumberOfAllDocuments(listOfDocuments.size() + documentManagerInstance.getNumberOfAllDocuments());
+        documentManagerInstance.addDocumentsToLengthsOfAllDocumentsMap(listOfDocuments);
+        documentManagerInstance.createSetOfAllEntriesInIndex();
     }
 
     @Override
     public List<IndexEntry> search(String term) {
         Set<Map.Entry<String, Long>> termSearchResults = checkIfIndexMapContainsQueriedTerm(term);
         List<IndexEntry> result = new ArrayList<>();
-        Set<Map.Entry<String, Long>> allEntriesInIndex = indexInstance.getAllEntriesInIndex();
+        Set<Map.Entry<String, Long>> allEntriesInIndex = documentManagerInstance.getAllEntriesInIndex();
         for (Map.Entry<String, Long> e : termSearchResults) {
             result.add(createIndexEntry(e, termSearchResults, allEntriesInIndex));
         }
@@ -77,8 +77,8 @@ public class SearchEngineImplementation implements SearchEngine {
     }
 
     private Set<Map.Entry<String, Long>> checkIfIndexMapContainsQueriedTerm(String term) {
-        if (indexInstance.getIndexMap().containsKey(term)) {
-            return indexInstance.getIndexMap().get(term).entrySet();
+        if (documentManagerInstance.getInvertedIndex().containsKey(term)) {
+            return documentManagerInstance.getInvertedIndex().get(term).entrySet();
         } else {
             throw new TermNotFoundException("Sorry, no document with searched term was found");
         }
@@ -87,7 +87,7 @@ public class SearchEngineImplementation implements SearchEngine {
     private IndexEntry createIndexEntry(Map.Entry<String, Long> entryInTermSearchResult, Set<Map.Entry<String, Long>> termSearchResults, Set<Map.Entry<String, Long>> allEntriesInIndexMap) {
         Long rawFrequencyOfOfMostOccurringTerm = findRawFrequencyOfOfMostOccurringTerm(allEntriesInIndexMap, entryInTermSearchResult.getKey());
         System.out.println("Raw frequency of most occurring term: " + rawFrequencyOfOfMostOccurringTerm);
-        return new IndexEntryImplementation(entryInTermSearchResult.getKey(), calculateScoreTFIDF(entryInTermSearchResult.getValue(), rawFrequencyOfOfMostOccurringTerm, indexInstance.getNumberOfAllDocuments(), termSearchResults.size()));
+        return new IndexEntryImplementation(entryInTermSearchResult.getKey(), calculateScoreTFIDF(entryInTermSearchResult.getValue(), rawFrequencyOfOfMostOccurringTerm, documentManagerInstance.getNumberOfAllDocuments(), termSearchResults.size()));
     }
 
     private Long findRawFrequencyOfOfMostOccurringTerm(Set<Map.Entry<String, Long>> allEntriesInIndex, String documentID) {
@@ -104,8 +104,8 @@ public class SearchEngineImplementation implements SearchEngine {
 
 
         ((SearchEngineImplementation) searchEngine).indexAllDocuments(documents);
-        System.out.println(((SearchEngineImplementation) searchEngine).indexInstance.getAllEntriesInIndex());
-        System.out.println("index: " + ((SearchEngineImplementation) searchEngine).indexInstance);
+        System.out.println(((SearchEngineImplementation) searchEngine).documentManagerInstance.getAllEntriesInIndex());
+        System.out.println("index: " + ((SearchEngineImplementation) searchEngine).documentManagerInstance);
         System.out.println("brown: " + searchEngine.search("brown"));
         System.out.println("fox: " + searchEngine.search("fox"));
         System.out.println("the: " + searchEngine.search("the"));
