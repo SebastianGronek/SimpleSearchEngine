@@ -2,41 +2,46 @@ package searchEngine;
 
 import com.findwise.IndexEntry;
 import com.findwise.SearchEngine;
+import entryPoint.EntryPoint;
 import errors.TermNotFoundException;
+import index.DocumentManager;
 import index.IndexEntryImplementation;
 import model.Document;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class SearchEngineImplementationTest {
-    private static SearchEngine searchEngine;
-    private List<Document> documents;
+    private SearchEngine searchEngine;
+    private static List<Document> documents;
 
     @BeforeAll
-    private static void instantiatingSearchEngine() {
-        searchEngine = new SearchEngineImplementation();
+    private static void instantiateDocumentList() {
+        documents = new ArrayList<>();
+        documents.add(new Document("Document 1", "the brown fox jumped over the brown dog"));
+        documents.add(new Document("Document 2", "the lazy brown dog sat in the corner"));
+        documents.add(new Document("Document 3", "the red fox bit the lazy dog"));
     }
 
     @BeforeEach
-    private void instantiateDocumentList() {
-        documents = new ArrayList<>();
+    private void instantiatingSearchEngine() {
+        searchEngine = new SearchEngineImplementation(documents);
     }
 
     @Test
     void shouldIndexDocumentAndSearch() {
         //given
-        documents.add(new Document("Document 1", "the brown fox jumped over the brown dog"));
-        documents.add(new Document("Document 2", "the lazy brown dog sat in the corner"));
-        documents.add(new Document("Document 3", "the red fox bit the lazy dog"));
+
         //when
-        List<IndexEntry> result = SearchEngineImplementation.indexDocumentsAndSearchForTerm(documents, "fox");
+        List<IndexEntry> result = EntryPoint.indexDocumentsAndSearchForTerm(documents, "fox");
         //then
         List<IndexEntry> expected = new ArrayList<>();
         expected.add(new IndexEntryImplementation("Document 3", TFIDFCalculator.calculateScoreTFIDF(1, 2, 3, 2)));
@@ -48,10 +53,7 @@ class SearchEngineImplementationTest {
     @Test
     void shouldSearchExampleFromTaskDescription() {
         //given
-        documents.add(new Document("Document 1", "the brown fox jumped over the brown dog"));
-        documents.add(new Document("Document 2", "the lazy brown dog sat in the corner"));
-        documents.add(new Document("Document 3", "the red fox bit the lazy dog"));
-        ((SearchEngineImplementation) searchEngine).indexAllDocuments(documents);
+        ((SearchEngineImplementation) searchEngine).addNewDocumentsToIndex(documents);
         //when
         List<IndexEntry> result = searchEngine.search("brown");
         //then
@@ -65,10 +67,11 @@ class SearchEngineImplementationTest {
     @Test
     void shouldSearchExampleFromTaskDescriptionWithPunctuation() {
         //given
+        documents = new ArrayList<>();
         documents.add(new Document("Document 1", "the brown, fox jumped> over< the  ^brown % dog @"));
         documents.add(new Document("Document 2", "the lazy. .brown , dog sat       in  - -  --- the }corner"));
         documents.add(new Document("Document 3", "the red fox bit,, the lazy: ; \" dog"));
-        ((SearchEngineImplementation) searchEngine).indexAllDocuments(documents);
+        ((SearchEngineImplementation) searchEngine).addNewDocumentsToIndex(documents);
         //when
         List<IndexEntry> result = searchEngine.search("brown");
         //then
@@ -83,21 +86,20 @@ class SearchEngineImplementationTest {
     void shouldSearchExampleForEmptyListFail() {
         //given
         List<Document> documents = new ArrayList<>();
-        ((SearchEngineImplementation) searchEngine).indexAllDocuments(documents);
+        ((SearchEngineImplementation) searchEngine).addNewDocumentsToIndex(documents);
         //when
+
         //then
         assertThatThrownBy(() -> searchEngine.search("brown")).isInstanceOf(TermNotFoundException.class).hasMessage("Sorry, no document with searched term was found");
     }
 
     @Test
-    void shouldSearchExampleForDocumentsWithNoContentFail() {
+    void shouldSearchMethodFailIfTermIsNull() {
         //given
-        documents.add(new Document("Document 1", ""));
-        documents.add(new Document("Document 2", ""));
-        documents.add(new Document("Document 3", ""));
-        ((SearchEngineImplementation) searchEngine).indexAllDocuments(documents);
+
         //when
+
         //then
-        assertThatThrownBy(() -> searchEngine.search("brown")).isInstanceOf(TermNotFoundException.class).hasMessage("Sorry, no document with searched term was found");
+        assertThatThrownBy(() -> searchEngine.search(null)).isInstanceOf(NullPointerException.class).hasMessage("Term provided for indexDocumentsAndSearchForTerm method equals null");
     }
 }

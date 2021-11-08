@@ -1,35 +1,35 @@
 package index;
 
+import model.Document;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DocumentManagerTest {
-    private static DocumentManager documentManager;
+    private static List<Document> documents;
 
     @BeforeAll
     private static void createDocumentManager() {
-        documentManager = new DocumentManager();
+        documents = new ArrayList<>();
+        documents.add(new Document("Document 1", "the brown fox jumped over the brown dog"));
+        documents.add(new Document("Document 2", "the lazy brown dog sat in the corner"));
+        documents.add(new Document("Document 3", "the red fox bit the lazy dog"));
     }
 
     @Test
-    void shouldSplitDocumentIntoWordsAndCountOccurrences() {
-//given
-        String content = "Winter is coming, Ours is the fury!";
-//when
-        Map<String, Long> result = documentManager.splitDocumentIntoWordsAndCountOccurrences(content);
-//then
+    void shouldAddDocumentsToLengthsOfAllDocumentsMap() {
+        //given
+        DocumentManager documentManager = DocumentManager.DocumentManagerFactory(documents);
+        //when
+        documentManager.addDocumentsToLengthsOfAllDocumentsMap(documents);
+        //then
         Map<String, Long> expected = new HashMap<>();
-        expected.put("Winter", 1L);
-        expected.put("is", 2L);
-        expected.put("coming", 1L);
-        expected.put("Ours", 1L);
-        expected.put("the", 1L);
-        expected.put("fury", 1L);
-        assertThat(result).isEqualTo(expected);
+        expected.put("Document 1", 8L);
+        expected.put("Document 2", 8L);
+        expected.put("Document 3", 7L);
+        assertThat(documentManager.getLengthsOfAllDocuments()).containsExactlyEntriesOf(expected);
     }
 }
