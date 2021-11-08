@@ -1,7 +1,7 @@
 # Simple Search Engine
 
 Simple search engine created as a recruitment task. 
-The search engine supports searches for single terms in the document set and returns a list of IndexEntry objects. IndexEntry object contains name of document with desired term and score, calculated as TF-IDF (Term Frequency - Inverse Document Frequency). 
+The search engine supports searches for single terms in the document set and returns a list of IndexEntry objects. IndexEntry object contains name of document with desired term and score, calculated as TF-IDF (Term Frequency - Inverse Document Frequency). Search engine ignores the difference between upper and lower case. Provided with empty map or null, search engine throws exception with proper message.
 
 ## Table of contents
 * [Technologies](#technologies)
@@ -16,11 +16,15 @@ The search engine supports searches for single terms in the document set and ret
 * AssertJ
 
 ### Setup
-Download code to your IDE and run main method. To use search engine, use static method 
+Download code to your IDE and run main method. To use search engine, create SimpleSearchEngine using constructor
 ```
-indexDocumentsAndSearchForTerm(List<Document> documents, String term);
+new SearchEngineImplementation(Map<String, String> documentsNameAndContent);
 ```
-where *documents* is list of texts to be indexed, which are wrapped in simple container Class (with Strings name and content).
+where *documentsNamesAndContents* is map of documents' names and contents. Then use *search()* method with desired term as parameter
+```
+public List<IndexEntry> search(String term);
+```
+which returns list of IndexEntry objects.
 ### TFIDF algorithm
 This search engine uses TF-IDF calculation scheme with augmented frequency (double normalization 0.5), which could be found on Wikipedia.
 
@@ -43,16 +47,20 @@ n- number of documents containing searched term
 ### Sorting of result list
 List of IndexEntry objects is sorted in descending order by score. If two IndexEntries have the same score, the one referring shorter document comes first.
 ### Example
-Creating list of documents to be indexed:
+Creating map of documents to be indexed:
 ```
-List<Document> documents = new ArrayList<>();
-        documents.add(new Document("Document 1", "the brown fox jumped over    the brown dog"));
-        documents.add(new Document("Document 2", "the lazy brown dog sat, in the corner"));
-        documents.add(new Document("Document 3", "the red fox bit the ... lazy dog"));
+ documentsNamesAndContents = new HashMap<>();
+        documentsNamesAndContents.put("Document 1", "the brown fox jumped over the brown dog");
+        documentsNamesAndContents.put("Document 2", "the lazy brown dog sat in the corner");
+        documentsNamesAndContents.put("Document 3", "the red fox bit the lazy dog");
 ```
-Searching for term "brown":
+Creating instance of SimpleSearchEngine class:
 ```
-indexDocumentsAndSearchForTerm(documents, "brown");
+searchEngine = new SearchEngineImplementation(documentsNameAndContent);
+```
+Searching for desired term:
+```
+List<IndexEntry> result = searchEngine.search("brown");
 ```
 Result:
 ```

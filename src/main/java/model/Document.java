@@ -3,6 +3,7 @@ package model;
 import errors.InvalidInputException;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,6 +45,6 @@ public class Document {
     }
 
     public static Map<String, Long> splitDocumentIntoWordsAndCountOccurrences(String content) {
-        return splitContentIntoStreamOfWords(content).collect(Collectors.groupingBy((t -> t), Collectors.counting()));
+        return splitContentIntoStreamOfWords(content).collect(Collectors.groupingBy((t -> t.toLowerCase(Locale.ROOT)), Collectors.counting()));
     }
 }

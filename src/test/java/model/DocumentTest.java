@@ -20,10 +20,10 @@ class DocumentTest {
         Map<String, Long> result = Document.splitDocumentIntoWordsAndCountOccurrences(content);
 //then
         Map<String, Long> expected = new HashMap<>();
-        expected.put("Winter", 1L);
+        expected.put("winter", 1L);
         expected.put("is", 2L);
         expected.put("coming", 1L);
-        expected.put("Ours", 1L);
+        expected.put("ours", 1L);
         expected.put("the", 1L);
         expected.put("fury", 1L);
         assertThat(result).isEqualTo(expected);

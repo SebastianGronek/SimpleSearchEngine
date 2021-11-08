@@ -2,8 +2,6 @@ package searchEngine;
 
 public class TFIDFCalculator {
     public static double calculateScoreTFIDF(long rawFrequencyOfTerm, long rawFrequencyOfOfMostOccurringTerm, long numberOfAllDocuments, long numberOfDocumentsWithGivenTerm) {
-        System.out.println(calculateTF(rawFrequencyOfTerm, rawFrequencyOfOfMostOccurringTerm));
-        System.out.println(calculateIDF(numberOfAllDocuments, numberOfDocumentsWithGivenTerm));
         return calculateTF(rawFrequencyOfTerm, rawFrequencyOfOfMostOccurringTerm) * calculateIDF(numberOfAllDocuments, numberOfDocumentsWithGivenTerm);
     }
 

@@ -2,6 +2,7 @@ package searchEngine;
 
 import com.findwise.IndexEntry;
 import com.findwise.SearchEngine;
+import errors.InvalidInputException;
 import errors.TermNotFoundException;
 import index.DocumentManager;
 import index.IndexEntryImplementation;
@@ -16,11 +17,15 @@ public class SearchEngineImplementation implements SearchEngine {
 
     private DocumentManager documentManagerInstance;
 
-    public SearchEngineImplementation(List<Document> documents) {
+    private final List<Document> documents;
+
+    public SearchEngineImplementation(Map<String, String> documentsNameAndContent) {
+        documents = new ArrayList<>();
+        indexAllDocuments(documentsNameAndContent);
         this.documentManagerInstance = DocumentManager.DocumentManagerFactory(documents);
     }
 
-    private Comparator<IndexEntry> indexEntryComparator = (t1, t2) -> {
+    private final Comparator<IndexEntry> indexEntryComparator = (t1, t2) -> {
         int difference = (int) (t1.getScore() - t2.getScore());
         if (difference == 0) {
             return (int) (documentManagerInstance.getLengthsOfAllDocuments().get(t1.getId()) - documentManagerInstance.getLengthsOfAllDocuments().get(t2.getId()));
@@ -28,29 +33,20 @@ public class SearchEngineImplementation implements SearchEngine {
         return difference;
     };
 
-
-    public void addNewDocumentsToIndex(List<Document> listOfDocuments) {
-        for (Document d : listOfDocuments) {
-            indexDocument(d.getName(), d.getContent());
+    public void indexAllDocuments(Map<String, String> documentsNameAndContent) {
+        if (documentsNameAndContent == null) {
+            throw new NullPointerException("Provided map of documents is null");
+        } else if (documentsNameAndContent.isEmpty()) {
+            throw new InvalidInputException("Provided map of documents is empty");
         }
-        documentManagerInstance.createSetOfAllEntriesInIndex();
+        for (Map.Entry<String, String> e : documentsNameAndContent.entrySet()) {
+            indexDocument(e.getKey(), e.getValue());
+        }
     }
 
     @Override
     public void indexDocument(String id, String content) {
-        Map<String, Long> wordAndNumberOfOccurrences = Document.splitDocumentIntoWordsAndCountOccurrences(content);
-        for (Map.Entry<String, Long> entry : wordAndNumberOfOccurrences.entrySet()) {
-            addingEntryFromDocumentToInvertedIndex(id, entry);
-        }
-    }
-
-    private void addingEntryFromDocumentToInvertedIndex(String id, Map.Entry<String, Long> entry) {
-        documentManagerInstance.getInvertedIndex().merge(entry.getKey(), new HashMap<>() {{
-            put(id, entry.getValue());
-        }}, (t, s) -> {
-            t.put(id, entry.getValue());
-            return t;
-        });
+        documents.add(new Document(id, content));
     }
 
     @Override
@@ -64,6 +60,7 @@ public class SearchEngineImplementation implements SearchEngine {
     }
 
     private Set<Map.Entry<String, Long>> searchForQueriedTerm(String term) {
+        term = term.toLowerCase(Locale.ROOT);
         if (documentManagerInstance.getInvertedIndex().containsKey(term)) {
             return documentManagerInstance.getInvertedIndex().get(term).entrySet();
         } else {
@@ -73,7 +70,6 @@ public class SearchEngineImplementation implements SearchEngine {
 
     private IndexEntry createIndexEntry(Map.Entry<String, Long> entryInTermSearchResult, Set<Map.Entry<String, Long>> termSearchResults, List<Map.Entry<String, Long>> allEntriesInIndexMap) {
         Long rawFrequencyOfOfMostOccurringTerm = findRawFrequencyOfMostOccurringTerm(allEntriesInIndexMap, entryInTermSearchResult.getKey());
-        System.out.println("Raw frequency of most occurring term: " + rawFrequencyOfOfMostOccurringTerm);
         return new IndexEntryImplementation(entryInTermSearchResult.getKey(), calculateScoreTFIDF(entryInTermSearchResult.getValue(), rawFrequencyOfOfMostOccurringTerm, documentManagerInstance.getLengthsOfAllDocuments().size(), termSearchResults.size()));
     }
 
