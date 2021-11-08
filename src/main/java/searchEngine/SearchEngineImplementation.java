@@ -72,7 +72,7 @@ public class SearchEngineImplementation implements SearchEngine {
     }
 
     private IndexEntry createIndexEntry(Map.Entry<String, Long> entryInTermSearchResult, Set<Map.Entry<String, Long>> termSearchResults, List<Map.Entry<String, Long>> allEntriesInIndexMap) {
-        Long rawFrequencyOfOfMostOccurringTerm = findRawFrequencyd .OfMostOccurringTerm(allEntriesInIndexMap, entryInTermSearchResult.getKey());
+        Long rawFrequencyOfOfMostOccurringTerm = findRawFrequencyOfMostOccurringTerm(allEntriesInIndexMap, entryInTermSearchResult.getKey());
         System.out.println("Raw frequency of most occurring term: " + rawFrequencyOfOfMostOccurringTerm);
         return new IndexEntryImplementation(entryInTermSearchResult.getKey(), calculateScoreTFIDF(entryInTermSearchResult.getValue(), rawFrequencyOfOfMostOccurringTerm, documentManagerInstance.getLengthsOfAllDocuments().size(), termSearchResults.size()));
     }
