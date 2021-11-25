@@ -84,7 +84,7 @@ class DocumentManagerTest {
         //when
 
         //then
-        assertThatThrownBy(() -> DocumentManager.DocumentManagerFactory(documents)).isInstanceOf(NullPointerException.class).hasMessage("Provided map of documents is null");
+        assertThatThrownBy(() -> DocumentManager.DocumentManagerFactory(documents)).isInstanceOf(NullPointerException.class).hasMessage("Provided list of documents is null");
     }
 
     @Test
@@ -94,6 +94,6 @@ class DocumentManagerTest {
         //when
 
         //then
-        assertThatThrownBy(() -> DocumentManager.DocumentManagerFactory(documents)).isInstanceOf(InvalidInputException.class).hasMessage("Provided map of documents is empty");
+        assertThatThrownBy(() -> DocumentManager.DocumentManagerFactory(documents)).isInstanceOf(InvalidInputException.class).hasMessage("Provided list of documents is empty");
     }
 }

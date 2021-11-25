@@ -43,7 +43,6 @@ class SearchEngineImplementationTest {
         List<IndexEntry> expected = new ArrayList<>();
         expected.add(new IndexEntryImplementation("Document 3", TFIDFCalculator.calculateScoreTFIDF(1, 2, 3, 2)));
         expected.add(new IndexEntryImplementation("Document 1", TFIDFCalculator.calculateScoreTFIDF(1, 2, 3, 2)));
-
         assertThat(result).containsExactlyElementsOf(expected);
     }
 
@@ -57,7 +56,6 @@ class SearchEngineImplementationTest {
         List<IndexEntry> expected = new ArrayList<>();
         expected.add(new IndexEntryImplementation("Document 1", TFIDFCalculator.calculateScoreTFIDF(2, 2, 3, 2)));
         expected.add(new IndexEntryImplementation("Document 2", TFIDFCalculator.calculateScoreTFIDF(1, 2, 3, 2)));
-
         assertThat(result).containsExactlyElementsOf(expected);
     }
 
@@ -87,7 +85,8 @@ class SearchEngineImplementationTest {
         //when
 
         //then
-        assertThatThrownBy(() -> searchEngine = new SearchEngineImplementation(documents)).isInstanceOf(NullPointerException.class).hasMessage("Provided map of documents is null");
+        assertThatThrownBy(() -> searchEngine = new SearchEngineImplementation(documents)).isInstanceOf(NullPointerException.class)
+                .hasMessage("Provided map of documents is null");
     }
 
     @Test
@@ -98,7 +97,8 @@ class SearchEngineImplementationTest {
         //when
 
         //then
-        assertThatThrownBy(() -> searchEngine = new SearchEngineImplementation(documents)).isInstanceOf(InvalidInputException.class).hasMessage("Provided map of documents is empty");
+        assertThatThrownBy(() -> searchEngine = new SearchEngineImplementation(documents)).isInstanceOf(InvalidInputException.class)
+                .hasMessage("Provided map of documents is empty");
     }
 
 
@@ -109,6 +109,7 @@ class SearchEngineImplementationTest {
         //when
 
         //then
-        assertThatThrownBy(() -> searchEngine.search(null)).isInstanceOf(NullPointerException.class).hasMessage("Term provided for indexDocumentsAndSearchForTerm method equals null");
+        assertThatThrownBy(() -> searchEngine.search(null)).isInstanceOf(NullPointerException.class)
+                .hasMessage("Term provided for search method equals null");
     }
 }

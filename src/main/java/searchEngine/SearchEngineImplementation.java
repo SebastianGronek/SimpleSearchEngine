@@ -33,6 +33,9 @@ public class SearchEngineImplementation implements SearchEngine {
         return difference;
     };
 
+    /**Invokes method <i>indexDocument</i> for each entry in documentsNameAndContent map. Throws runtime exceptions if documentsNameAndContent is null or empty.
+     * @param documentsNameAndContent
+     */
     public void indexAllDocuments(Map<String, String> documentsNameAndContent) {
         if (documentsNameAndContent == null) {
             throw new NullPointerException("Provided map of documents is null");
@@ -44,15 +47,26 @@ public class SearchEngineImplementation implements SearchEngine {
         }
     }
 
+    /**Create <i>Document</i> class object with constructor using provided parameters and add it to <i>documents</i> (field in SearchEngineImplementation instances).
+     * @param id      name of the indexed document
+     * @param content content of the document
+     */
     @Override
     public void indexDocument(String id, String content) {
         documents.add(new Document(id, content));
     }
 
+    /**Returns list of IndexEntry objects for given term. Each index entry object has fields String <i>id</i> (name of document where given term was found)
+     * and double <i>score</i> (score calculated by TF-IDF algorithm with augmented frequency - check README for details). Documents for search are provided
+     * during creation of SearchEngineImplementation instance. Return value is sorted by score, descending. In case of identical score,
+     * IndexEntries are sorted by overall length of document, ascending.
+     * @param term searched term (single word)
+     * @return list of IndexEntries for searched term, consisting of id (name) of a document where term was found and calculated TF-IDF score
+     */
     @Override
     public List<IndexEntry> search(String term) {
         if (term == null) {
-            throw new NullPointerException("Term provided for indexDocumentsAndSearchForTerm method equals null");
+            throw new NullPointerException("Term provided for search method equals null");
         }
         Set<Map.Entry<String, Long>> termSearchResults = searchForQueriedTerm(term);
         List<Map.Entry<String, Long>> allEntriesInIndex = documentManagerInstance.getAllEntriesInIndex();
@@ -68,12 +82,22 @@ public class SearchEngineImplementation implements SearchEngine {
         }
     }
 
-    private IndexEntry createIndexEntry(Map.Entry<String, Long> entryInTermSearchResult, Set<Map.Entry<String, Long>> termSearchResults, List<Map.Entry<String, Long>> allEntriesInIndexMap) {
+    private IndexEntry createIndexEntry(Map.Entry<String, Long> entryInTermSearchResult,
+                                        Set<Map.Entry<String, Long>> termSearchResults,
+                                        List<Map.Entry<String, Long>> allEntriesInIndexMap) {
         Long rawFrequencyOfOfMostOccurringTerm = findRawFrequencyOfMostOccurringTerm(allEntriesInIndexMap, entryInTermSearchResult.getKey());
-        return new IndexEntryImplementation(entryInTermSearchResult.getKey(), calculateScoreTFIDF(entryInTermSearchResult.getValue(), rawFrequencyOfOfMostOccurringTerm, documentManagerInstance.getLengthsOfAllDocuments().size(), termSearchResults.size()));
+        double TFIDFScore = calculateScoreTFIDF(entryInTermSearchResult.getValue(), rawFrequencyOfOfMostOccurringTerm,
+                documentManagerInstance.getLengthsOfAllDocuments().size(), termSearchResults.size());
+        return new IndexEntryImplementation(entryInTermSearchResult.getKey(), TFIDFScore);
     }
 
-    private Long findRawFrequencyOfMostOccurringTerm(List<Map.Entry<String, Long>> allEntriesInIndex, String documentID) {
+    private Long findRawFrequencyOfMostOccurringTerm(List<Map.Entry<String, Long>> allEntriesInIndex,
+                                                     String documentID) {
         return allEntriesInIndex.stream().filter(e -> e.getKey().equalsIgnoreCase(documentID)).max((t, s) -> (int) (t.getValue() - s.getValue())).get().getValue();
     }
+
+    public static void main(String[] args) {
+
+    }
+
 }

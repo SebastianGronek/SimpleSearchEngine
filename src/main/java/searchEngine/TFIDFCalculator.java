@@ -10,6 +10,6 @@ public class TFIDFCalculator {
     }
 
     private static double calculateIDF(long numberOfAllDocuments, long numberOfDocumentsWithGivenTerm) {
-        return Math.log10((double) numberOfAllDocuments / numberOfDocumentsWithGivenTerm);
+        return Math.log10((double) numberOfAllDocuments / numberOfDocumentsWithGivenTerm+1);
     }
 }
